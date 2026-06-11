@@ -73,7 +73,13 @@ class SaveJSONNode:
         if source_filename.strip():
             base = os.path.splitext(os.path.basename(source_filename.strip()))[0]
             base = re.sub(r'[^\w\-.]', '_', base)
+            # If a file with this name already exists, append (1), (2), etc.
             filename = base + ".json"
+            if os.path.exists(os.path.join(directory, filename)):
+                n = 1
+                while os.path.exists(os.path.join(directory, f"{base} ({n}).json")):
+                    n += 1
+                filename = f"{base} ({n}).json"
         else:
             counter = self._next_counter(directory, prefix)
             filename = f"{prefix}_{counter:05d}.json"
