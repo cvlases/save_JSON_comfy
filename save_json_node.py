@@ -23,6 +23,12 @@ class SaveJSONNode:
                 # Leave blank to save directly in output/.
                 "subfolder": ("STRING", {"default": ""}),
             },
+            "optional": {
+                # Wire to Load Image's filename output to mirror the source
+                # image name (e.g. "photo_001.jpg" → "photo_001.json").
+                # Overrides the auto-increment counter when provided.
+                "source_filename": ("STRING", {"default": ""}),
+            },
         }
 
     RETURN_TYPES = ("STRING",)
@@ -31,7 +37,7 @@ class SaveJSONNode:
     OUTPUT_NODE = True
     CATEGORY = "utils/io"
 
-    def save_json(self, json_string, filename_prefix="locate_anything", subfolder=""):
+    def save_json(self, json_string, filename_prefix="locate_anything", subfolder="", source_filename=""):
 
         # ── Resolve output directory ────────────────────────────────────
         output_dir = folder_paths.get_output_directory()
@@ -50,22 +56,28 @@ class SaveJSONNode:
         if isinstance(parsed, list):
             saved = []
             for item in parsed:
-                path = self._write(output_dir, filename_prefix, item)
+                path = self._write(output_dir, filename_prefix, item, source_filename)
                 saved.append(path)
             print(f"[SaveJSON] ✓  Saved {len(saved)} files → {output_dir}")
             return {"ui": {"text": saved}, "result": (" | ".join(saved),)}
 
         # ── Single object / raw string ──────────────────────────────────
-        path = self._write(output_dir, filename_prefix, parsed)
+        path = self._write(output_dir, filename_prefix, parsed, source_filename)
         print(f"[SaveJSON] ✓  Saved → {path}")
         return {"ui": {"text": [path]}, "result": (path,)}
 
     # ── Helpers ─────────────────────────────────────────────────────────
 
-    def _write(self, directory, prefix, data):
-        """Write one JSON file with an auto-incremented name."""
-        counter = self._next_counter(directory, prefix)
-        filename = f"{prefix}_{counter:05d}.json"
+    def _write(self, directory, prefix, data, source_filename=""):
+        """Write one JSON file, using source_filename if provided, otherwise auto-increment."""
+        if source_filename.strip():
+            base = os.path.splitext(os.path.basename(source_filename.strip()))[0]
+            base = re.sub(r'[^\w\-.]', '_', base)
+            filename = base + ".json"
+        else:
+            counter = self._next_counter(directory, prefix)
+            filename = f"{prefix}_{counter:05d}.json"
+
         filepath = os.path.join(directory, filename)
         with open(filepath, "w", encoding="utf-8") as fh:
             if isinstance(data, str):
