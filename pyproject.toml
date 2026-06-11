@@ -1,0 +1,14 @@
+[project]
+name = "comfyui-save-json"
+description = "Save JSON output to disk from any ComfyUI node"
+version = "1.0.0"
+license = { file = "LICENSE.txt" }
+dependencies = []
+
+[project.urls]
+Repository = "https://github.com/YOUR_USERNAME/YOUR_REPO"
+
+[tool.comfy]
+PublisherId = ""     # fill in after step 3
+DisplayName = "Save JSON"
+Icon = ""
