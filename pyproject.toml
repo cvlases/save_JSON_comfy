@@ -1,7 +1,7 @@
 [project]
 name = "comfyui-save-json"
 description = "Save JSON output to disk from any ComfyUI node"
-version = "1.0.0"
+version = "1.0.1"
 license = { file = "LICENSE.txt" }
 dependencies = []
 
