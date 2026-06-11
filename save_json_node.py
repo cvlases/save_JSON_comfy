@@ -19,14 +19,11 @@ class SaveJSONNode:
             "required": {
                 "json_string": ("STRING", {"forceInput": True}),
                 "filename_prefix": ("STRING", {"default": "locate_anything"}),
-                # Subfolder inside ComfyUI's output/ directory.
-                # Leave blank to save directly in output/.
                 "subfolder": ("STRING", {"default": ""}),
             },
             "optional": {
-                # Wire to Load Image's filename output to mirror the source
-                # image name (e.g. "photo_001.jpg" → "photo_001.json").
-                # Overrides the auto-increment counter when provided.
+                # Wire to Load Image's filename output to use the source image
+                # name as the prefix (e.g. "photo_001.jpg" → "photo_001_00000.json").
                 "source_filename": ("STRING", {"default": ""}),
             },
         }
@@ -50,7 +47,7 @@ class SaveJSONNode:
             parsed = json.loads(json_string)
         except json.JSONDecodeError:
             print("[SaveJSON] ⚠  Input was not valid JSON; saving raw string.")
-            parsed = json_string  # save as-is
+            parsed = json_string
 
         # ── If it's an array, split into one file per element ───────────
         if isinstance(parsed, list):
@@ -69,22 +66,16 @@ class SaveJSONNode:
     # ── Helpers ─────────────────────────────────────────────────────────
 
     def _write(self, directory, prefix, data, source_filename=""):
-        """Write one JSON file, using source_filename if provided, otherwise auto-increment."""
+        """Write one JSON file with a zero-padded auto-incrementing name."""
         if source_filename.strip():
+            # Use the source image name as the prefix instead
             base = os.path.splitext(os.path.basename(source_filename.strip()))[0]
-            base = re.sub(r'[^\w\-.]', '_', base)
-            # If a file with this name already exists, append (1), (2), etc.
-            filename = base + ".json"
-            if os.path.exists(os.path.join(directory, filename)):
-                n = 1
-                while os.path.exists(os.path.join(directory, f"{base} ({n}).json")):
-                    n += 1
-                filename = f"{base} ({n}).json"
-        else:
-            counter = self._next_counter(directory, prefix)
-            filename = f"{prefix}_{counter:05d}.json"
+            prefix = re.sub(r'[^\w\-.]', '_', base)
 
+        counter = self._next_counter(directory, prefix)
+        filename = f"{prefix}_{counter:05d}.json"
         filepath = os.path.join(directory, filename)
+
         with open(filepath, "w", encoding="utf-8") as fh:
             if isinstance(data, str):
                 fh.write(data)
