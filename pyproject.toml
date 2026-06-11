@@ -9,6 +9,6 @@ dependencies = []
 Repository = "https://github.com/YOUR_USERNAME/YOUR_REPO"
 
 [tool.comfy]
-PublisherId = ""     # fill in after step 3
+PublisherId = "clorb"
 DisplayName = "Save JSON"
 Icon = ""
